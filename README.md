@@ -13,3 +13,8 @@ Run the following command in the terminal:
 
 You will see a message that says 'listening on 8400'.
 Navigate to localhost:8400 in your web browser and you will see the application running.
+
+## Expand
+
+You can replace the image used on the cube by placing a png or jpg file in the assets folder and changing the string value of the texture.
+### `const texture = loadTexture(gl, 'assets/your_image');`
