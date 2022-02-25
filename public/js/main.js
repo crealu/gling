@@ -1,8 +1,7 @@
-// before going on to 3D objects
 let canvas = document.getElementById('canvas');
 gl = canvas.getContext('webgl');
 
-var cubeRotation = 0.0;
+let cubeRotation = 0.0;
 
 function loadTexture(gl, url) {
   const texture = gl.createTexture();
@@ -41,31 +40,6 @@ function loadTexture(gl, url) {
 function isPowerOf2(value) {
   return (value & (value - 1)) == 0;
 }
-
-const vsSource = `
-  attribute vec4 aVertexPosition;
-  attribute vec2 aTextureCoord;
-
-  uniform mat4 uModelViewMatrix;
-  uniform mat4 uProjectionMatrix;
-
-  varying highp vec2 vTextureCoord;
-
-  void main(void) {
-    gl_Position = uProjectionMatrix * uModelViewMatrix * aVertexPosition;
-    vTextureCoord = aTextureCoord;
-  }
-`;
-
-const fsSource = `
-  varying highp vec2 vTextureCoord;
-
-  uniform sampler2D uSampler;
-
-  void main(void) {
-    gl_FragColor = texture2D(uSampler, vTextureCoord);
-  }
-`;
 
 function loadShader(gl, type, source) {
   const shader = gl.createShader(type);
@@ -114,9 +88,6 @@ const programInfo = {
 
 function initBuffers(gl) {
   const positionBuffer = gl.createBuffer();
-
-  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-
   const positions = [
     // front
     -1.0, -1.0,  1.0,
@@ -155,37 +126,14 @@ function initBuffers(gl) {
     -1.0,  1.0, -1.0,
   ];
 
+  gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
   gl.bufferData(
     gl.ARRAY_BUFFER,
     new Float32Array(positions),
     gl.STATIC_DRAW
   );
 
-/*
-  const faceColors = [
-    [1.0, 0.0, 0.0, 1.0],
-    [0.0, 1.0, 0.0, 1.0],
-    [0.0, 0.0, 1.0, 1.0],
-    [1.0, 1.0, 1.0, 1.0],
-    [1.0, 1.0, 0.0, 1.0],
-    [1.0, 0.0, 1.0, 1.0]
-  ];
-
-  var colors = [];
-
-  for (var j = 0; j < faceColors.length; j++) {
-    const c = faceColors[j];
-
-    colors = colors.concat(c, c, c, c);
-  }
-
-  const colorBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
-  gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(colors), gl.STATIC_DRAW);
-*/
   const textureCoordBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
-
   const textureCoordinates = [
     // front
     0.0, 0.0,
@@ -219,6 +167,7 @@ function initBuffers(gl) {
     0.0, 1.0
   ];
 
+  gl.bindBuffer(gl.ARRAY_BUFFER, textureCoordBuffer);
   gl.bufferData(
     gl.ARRAY_BUFFER,
     new Float32Array(textureCoordinates),
@@ -226,8 +175,6 @@ function initBuffers(gl) {
   );
 
   const indexBuffer = gl.createBuffer();
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
-
   const indices = [
     0,  1,  2,    0,  2,  3,
     4,  5,  6,    4,  6,  7,
@@ -237,6 +184,7 @@ function initBuffers(gl) {
     20, 21, 22,   20, 22, 23
   ];
 
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
   gl.bufferData(
     gl.ELEMENT_ARRAY_BUFFER,
     new Uint16Array(indices),
@@ -251,7 +199,7 @@ function initBuffers(gl) {
 }
 
 const buffers = initBuffers(gl);
-const texture = loadTexture(gl, 'assets/tat.png');
+const texture = loadTexture(gl, 'img/tat.png');
 
 function drawScene(gl, programInfo, buffers, texture, deltaTime) {
   gl.clearColor(0.0, 0.0, 0.0, 1.0);
@@ -266,6 +214,7 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
   const zNear = 0.1;
   const zFar = 100.0;
   const projectionMatrix = mat4.create();
+  const modelViewMatrix = mat4.create();
 
   mat4.perspective(
     projectionMatrix,
@@ -275,29 +224,9 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
     zFar
   );
 
-  const modelViewMatrix = mat4.create();
-
-  mat4.translate(
-    modelViewMatrix,
-    modelViewMatrix,
-    [-0.0, 0.0, -6.0]
-  );
-
-  // rotate
-
-  mat4.rotate(
-    modelViewMatrix,
-    modelViewMatrix,
-    cubeRotation * 0.7,
-    [0, 1, 0]
-  )
-
-  mat4.rotate(
-    modelViewMatrix,
-    modelViewMatrix,
-    cubeRotation,
-    [0, 0, 1]
-  )
+  mat4.translate(modelViewMatrix, modelViewMatrix, [0.0, 0.0, -6.0]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation * 0.7, [0, 1, 0]);
+  mat4.rotate(modelViewMatrix, modelViewMatrix, cubeRotation, [0, 0, 1]);
 
   {
     const numComponents = 3;
@@ -308,37 +237,12 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.position);
     gl.vertexAttribPointer(
       programInfo.attribLocations.vertextPosition,
-      numComponents,
-      type,
-      normalize,
-      stride,
-      offset
+      numComponents, type, normalize, stride, offset
     );
     gl.enableVertexAttribArray(
       programInfo.attribLocations.vertexPosition
     );
   }
-/*
-  {
-    const numComponents = 4;
-    const type = gl.FLOAT;
-    const normalize = false;
-    const stride = 0;
-    const offset = 0;
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffers.color);
-    gl.vertexAttribPointer(
-      programInfo.attribLocations.vertexColor,
-      numComponents,
-      type,
-      normalize,
-      stride,
-      offset
-    );
-    gl.enableVertexAttribArray(
-      programInfo.attribLocations.vertexColor
-    );
-  }
-*/
 
   {
     const numComponents = 2;
@@ -349,11 +253,7 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
     gl.bindBuffer(gl.ARRAY_BUFFER, buffers.textureCoord);
     gl.vertexAttribPointer(
       programInfo.attribLocations.textureCoord,
-      numComponents,
-      type,
-      normalize,
-      stride,
-      offset
+      numComponents, type, normalize, stride, offset
     );
     gl.enableVertexAttribArray(programInfo.attribLocations.textureCoord);
   }
@@ -385,43 +285,18 @@ function drawScene(gl, programInfo, buffers, texture, deltaTime) {
   }
 
   cubeRotation += deltaTime;
-  console.log('d');
 }
 
 //drawScene(gl, programInfo, buffers, texture, 0);
 
-var then = 0;
-
+let then = 0;
+let animFrame;
 function render(now) {
   now *= 0.0001;
   const deltaTime = now - then;
   then = now;
 
   drawScene(gl, programInfo, buffers, texture, deltaTime);
-
-  requestAnimationFrame(render);
+  animFrame = window.requestAnimationFrame(render);
 }
-requestAnimationFrame(render);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-// space
+animFrame = window.requestAnimationFrame(render);

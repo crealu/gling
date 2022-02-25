@@ -3,21 +3,24 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Mock</title>
-  <link href="css/style.css" type="text/css" rel="stylesheet">
-  <style type="text/css">
+  <title>WebGL Texture Cube</title>
+  <style>
+    body {
+      margin: 0px;
+      overflow: hidden;
+    }
+
     #canvas {
       width: 100vw;
       height: 100vh;
-      z-index: 1;
     }
   </style>
 </head>
 <body>
-  <p style="color: black;">hi</p>
   <canvas id="canvas" height="600" width="800"></canvas>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gl-matrix/2.8.1/gl-matrix-min.js"></script>
-  <script src="js/shaderTextures.js"></script>
+  <script src="js/shaders.js"></script>
+  <script src="js/main.js"></script>
   <script src="js/controls.js"></script>
 </body>
 </html>
